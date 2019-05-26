@@ -20,6 +20,7 @@ import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.os.RemoteException;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
@@ -34,8 +35,8 @@ import com.music.player.lib.bean.BaseAudioInfo;
 import com.music.player.lib.bean.MusicStatus;
 import com.music.player.lib.constants.MusicConstants;
 import com.music.player.lib.iinterface.MusicPlayerPresenter;
-import com.music.player.lib.listener.MusicPlayerEventListener;
-import com.music.player.lib.listener.MusicPlayerInfoListener;
+import com.music.player.lib.listener.IMusicPlayerEventListener;
+import com.music.player.lib.listener.IMusicPlayerInfoListener;
 import com.music.player.lib.manager.MusicAudioFocusManager;
 import com.music.player.lib.manager.MusicPlayerManager;
 import com.music.player.lib.manager.MusicWindowManager;
@@ -66,16 +67,14 @@ public class MusicPlayerService extends Service implements MusicPlayerPresenter,
     private static final String TAG = "MusicPlayerService";
     //当前正在工作的播放器对象
     private static MediaPlayer mMediaPlayer;
-    //Service委托代理人
-    private static MusicPlayerBinder mPlayerBinder;
     //组件回调注册池子
-    private static List<MusicPlayerEventListener> mOnPlayerEventListeners = new ArrayList<>();
+    private static List<IMusicPlayerEventListener> mOnPlayerEventListeners = new ArrayList<>();
     //播放对象监听
-    private static MusicPlayerInfoListener sMusicPlayerInfoListener;
+    private static IMusicPlayerInfoListener sMusicPlayerInfoListener;
     //音频焦点Manager
     private static MusicAudioFocusManager mAudioFocusManager;
     //待播放音频队列池子
-    private static List<Object> mAudios = new ArrayList<>();
+    private static List<BaseAudioInfo> mAudios = new ArrayList<>();
     //当前播放播放器正在处理的对象位置
     private int mCurrentPlayIndex = 0;
     //循环模式
@@ -105,9 +104,7 @@ public class MusicPlayerService extends Service implements MusicPlayerPresenter,
 
     @Override
     public IBinder onBind(Intent intent) {
-        if(null==mPlayerBinder){
-            mPlayerBinder = new MusicPlayerBinder(MusicPlayerService.this);
-        }
+        Logger.d(TAG,"onBind-->");
         return mPlayerBinder;
     }
 
@@ -208,7 +205,7 @@ public class MusicPlayerService extends Service implements MusicPlayerPresenter,
      * @param index 指定要播放的位置 0-data.size()
      */
     @Override
-    public void startPlayMusic(List<?> musicList, int index) {
+    public void startPlayMusic(List<BaseAudioInfo> musicList, int index) {
         if(null!=musicList){
             mAudios.clear();
             mAudios.addAll(musicList);
@@ -315,8 +312,12 @@ public class MusicPlayerService extends Service implements MusicPlayerPresenter,
         }finally {
             MusicPlayerService.this.mMusicPlayerState =MusicConstants.MUSIC_PLAYER_PAUSE;
             if (null != mOnPlayerEventListeners) {
-                for (MusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
-                    onPlayerEventListener.onMusicPlayerState(mMusicPlayerState,null);
+                for (IMusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
+                    try {
+                        onPlayerEventListener.onMusicPlayerState(mMusicPlayerState,null);
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
             MusicPlayerManager.getInstance().observerUpdata(new MusicStatus(MusicStatus.PLAYER_STATUS_PAUSE));
@@ -339,8 +340,12 @@ public class MusicPlayerService extends Service implements MusicPlayerPresenter,
         }finally {
             MusicPlayerService.this.mMusicPlayerState =MusicConstants.MUSIC_PLAYER_PAUSE;
             if (null != mOnPlayerEventListeners) {
-                for (MusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
-                    onPlayerEventListener.onMusicPlayerState(mMusicPlayerState,null);
+                for (IMusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
+                    try {
+                        onPlayerEventListener.onMusicPlayerState(mMusicPlayerState,null);
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
             MusicPlayerManager.getInstance().observerUpdata(new MusicStatus(MusicStatus.PLAYER_STATUS_PAUSE));
@@ -371,8 +376,12 @@ public class MusicPlayerService extends Service implements MusicPlayerPresenter,
             if(null!=mMediaPlayer){
                 MusicPlayerService.this.mMusicPlayerState =MusicConstants.MUSIC_PLAYER_PLAYING;
                 if (null != mOnPlayerEventListeners) {
-                    for (MusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
-                        onPlayerEventListener.onMusicPlayerState(mMusicPlayerState,null);
+                    for (IMusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
+                        try {
+                            onPlayerEventListener.onMusicPlayerState(mMusicPlayerState,null);
+                        } catch (RemoteException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
                 //最后更新通知栏
@@ -793,7 +802,7 @@ public class MusicPlayerService extends Service implements MusicPlayerPresenter,
             return 0;
         }
         if(null!=mAudios&&mAudios.size()>mCurrentPlayIndex){
-            return ((BaseAudioInfo) mAudios.get(mCurrentPlayIndex)).getAudioId();
+            return mAudios.get(mCurrentPlayIndex).getAudioId();
         }
         return 0;
     }
@@ -808,7 +817,7 @@ public class MusicPlayerService extends Service implements MusicPlayerPresenter,
             return null;
         }
         if(null!=mAudios&&mAudios.size()>mCurrentPlayIndex){
-            return (BaseAudioInfo) mAudios.get(mCurrentPlayIndex);
+            return mAudios.get(mCurrentPlayIndex) ;
         }
         return null;
     }
@@ -823,7 +832,7 @@ public class MusicPlayerService extends Service implements MusicPlayerPresenter,
             return "";
         }
         if(null!=mAudios&&mAudios.size()>mCurrentPlayIndex){
-            return ((BaseAudioInfo) mAudios.get(mCurrentPlayIndex)).getAudioHashKey();
+            return mAudios.get(mCurrentPlayIndex).getAudioHashKey();
         }
         return "";
     }
@@ -833,7 +842,7 @@ public class MusicPlayerService extends Service implements MusicPlayerPresenter,
      * @return 播放器内部持有的播放队列
      */
     @Override
-    public List<?> getCurrentPlayList() {
+    public List<BaseAudioInfo> getCurrentPlayList() {
         return mAudios;
     }
 
@@ -870,8 +879,12 @@ public class MusicPlayerService extends Service implements MusicPlayerPresenter,
     @Override
     public void onCheckedPlayerConfig() {
         if (null != mOnPlayerEventListeners) {
-            for (MusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
-                onPlayerEventListener.onPlayerConfig(mPlayModel,mMusicAlarmModel,false);
+            for (IMusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
+                try {
+                    onPlayerEventListener.onPlayerConfig(mPlayModel,mMusicAlarmModel,false);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -884,24 +897,28 @@ public class MusicPlayerService extends Service implements MusicPlayerPresenter,
     @Override
     public void onCheckedCurrentPlayTask() {
         if (null != mMediaPlayer && null != mAudios && mAudios.size() > 0) {
-            if (null != mOnPlayerEventListeners) {
-                BaseAudioInfo musicInfo = (BaseAudioInfo) mAudios.get(mCurrentPlayIndex);
-                for (MusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
-                    onPlayerEventListener.onMusicPlayerState(mMusicPlayerState,null);
-                    onPlayerEventListener.onPlayMusiconInfo(musicInfo,mCurrentPlayIndex);
-                    if(null!=mMediaPlayer){
-                        try {
-                            //+500毫秒是因为1秒一次的播放进度回显，格式化分秒后显示有时候到不了终点时间
-                            onPlayerEventListener.onTaskRuntime(mMediaPlayer.getDuration(),
-                                    mMediaPlayer.getCurrentPosition()+500,TIMER_DURTION,mBufferProgress);
-                        }catch (RuntimeException e){
-                            e.printStackTrace();
+            try {
+                if (null != mOnPlayerEventListeners) {
+                    BaseAudioInfo musicInfo = mAudios.get(mCurrentPlayIndex);
+                    for (IMusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
+                        onPlayerEventListener.onMusicPlayerState(mMusicPlayerState,null);
+                        onPlayerEventListener.onPlayMusiconInfo(musicInfo,mCurrentPlayIndex);
+                        if(null!=mMediaPlayer){
+                            try {
+                                //+500毫秒是因为1秒一次的播放进度回显，格式化分秒后显示有时候到不了终点时间
+                                onPlayerEventListener.onTaskRuntime(mMediaPlayer.getDuration(),
+                                        mMediaPlayer.getCurrentPosition()+500,TIMER_DURTION,mBufferProgress);
+                            }catch (RuntimeException e){
+                                e.printStackTrace();
+                                onPlayerEventListener.onTaskRuntime(0,0,TIMER_DURTION,mBufferProgress);
+                            }
+                        }else{
                             onPlayerEventListener.onTaskRuntime(0,0,TIMER_DURTION,mBufferProgress);
                         }
-                    }else{
-                        onPlayerEventListener.onTaskRuntime(0,0,TIMER_DURTION,mBufferProgress);
                     }
                 }
+            }catch (RemoteException e){
+                e.printStackTrace();
             }
         }
     }
@@ -911,7 +928,7 @@ public class MusicPlayerService extends Service implements MusicPlayerPresenter,
      * @param listener 实现监听器的对象
      */
     @Override
-    public void addOnPlayerEventListener(MusicPlayerEventListener listener) {
+    public void addOnPlayerEventListener(IMusicPlayerEventListener listener) {
         if(null!= mOnPlayerEventListeners){
             mOnPlayerEventListeners.add(listener);
         }
@@ -922,7 +939,7 @@ public class MusicPlayerService extends Service implements MusicPlayerPresenter,
      * @param listener 实现监听器的对象
      */
     @Override
-    public void removePlayerListener(MusicPlayerEventListener listener) {
+    public void removePlayerListener(IMusicPlayerEventListener listener) {
         if(null!= mOnPlayerEventListeners){
             mOnPlayerEventListeners.remove(listener);
         }
@@ -943,7 +960,7 @@ public class MusicPlayerService extends Service implements MusicPlayerPresenter,
      * @param listener 实现监听器的对象
      */
     @Override
-    public void setPlayInfoListener(MusicPlayerInfoListener listener) {
+    public void setPlayInfoListener(IMusicPlayerInfoListener listener) {
         MusicPlayerService.this.sMusicPlayerInfoListener=listener;
     }
 
@@ -1008,8 +1025,12 @@ public class MusicPlayerService extends Service implements MusicPlayerPresenter,
             MusicPlayerService.this.mMusicPlayerState =MusicConstants.MUSIC_PLAYER_STOP;
             MusicPlayerManager.getInstance().observerUpdata(new MusicStatus(MusicStatus.PLAYER_STATUS_STOP));
             if(null!= mOnPlayerEventListeners){
-                for (MusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
-                    onPlayerEventListener.onMusicPlayerState(mMusicPlayerState,null);
+                for (IMusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
+                    try {
+                        onPlayerEventListener.onMusicPlayerState(mMusicPlayerState,null);
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }
@@ -1021,7 +1042,7 @@ public class MusicPlayerService extends Service implements MusicPlayerPresenter,
      * @param index 位置
      */
     @Override
-    public void updateMusicPlayerData(List<?> audios, int index) {
+    public void updateMusicPlayerData(List<BaseAudioInfo> audios, int index) {
         if(null!=mAudios){
             mAudios.clear();
             mAudios.addAll(audios);
@@ -1094,8 +1115,12 @@ public class MusicPlayerService extends Service implements MusicPlayerPresenter,
 
         }finally {
             if (null != mOnPlayerEventListeners) {
-                for (MusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
-                    onPlayerEventListener.onPlayerConfig(mPlayModel,mMusicAlarmModel,true);
+                for (IMusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
+                    try {
+                        onPlayerEventListener.onPlayerConfig(mPlayModel,mMusicAlarmModel,true);
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }
@@ -1237,12 +1262,20 @@ public class MusicPlayerService extends Service implements MusicPlayerPresenter,
                     return;
                 }
                 if(null!= mOnPlayerEventListeners){
-                    for (MusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
+                    for (IMusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
                         if(null!=mMediaPlayer&&mMediaPlayer.isPlaying()){
-                            onPlayerEventListener.onTaskRuntime(mMediaPlayer.getDuration(),
-                                    mMediaPlayer.getCurrentPosition()+500,TIMER_DURTION,mBufferProgress);
+                            try {
+                                onPlayerEventListener.onTaskRuntime(mMediaPlayer.getDuration(),
+                                        mMediaPlayer.getCurrentPosition()+500,TIMER_DURTION,mBufferProgress);
+                            } catch (RemoteException e) {
+                                e.printStackTrace();
+                            }
                         }else{
-                            onPlayerEventListener.onTaskRuntime(-1,-1,TIMER_DURTION,mBufferProgress);
+                            try {
+                                onPlayerEventListener.onTaskRuntime(-1,-1,TIMER_DURTION,mBufferProgress);
+                            } catch (RemoteException e) {
+                                e.printStackTrace();
+                            }
                         }
                     }
                 }
@@ -1301,7 +1334,11 @@ public class MusicPlayerService extends Service implements MusicPlayerPresenter,
             startServiceForeground();
             if(requestAudioFocus== AudioManager.AUDIOFOCUS_REQUEST_GRANTED){
                 if(null!=sMusicPlayerInfoListener){
-                    sMusicPlayerInfoListener.onPlayMusiconInfo(musicInfo,mCurrentPlayIndex);
+                    try {
+                        sMusicPlayerInfoListener.onPlayMusiconInfo(musicInfo,mCurrentPlayIndex);
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
                 }
                 try {
                     mMediaPlayer = new MediaPlayer();
@@ -1329,7 +1366,7 @@ public class MusicPlayerService extends Service implements MusicPlayerPresenter,
                             + musicInfo.getAudioName() + ",PATH:" + path);
                     method.invoke(mMediaPlayer, path, null);
                     if (null != mOnPlayerEventListeners) {
-                        for (MusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
+                        for (IMusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
                             onPlayerEventListener.onMusicPlayerState(mMusicPlayerState,"播放准备中");
                         }
                     }
@@ -1342,8 +1379,12 @@ public class MusicPlayerService extends Service implements MusicPlayerPresenter,
                     Logger.e(TAG,"startPlay-->Exception--e:"+e.getMessage());
                     MusicPlayerService.this.mMusicPlayerState = MusicConstants.MUSIC_PLAYER_ERROR;
                     if (null != mOnPlayerEventListeners) {
-                        for (MusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
-                            onPlayerEventListener.onMusicPlayerState(mMusicPlayerState,"播放失败，"+e.getMessage());
+                        for (IMusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
+                            try {
+                                onPlayerEventListener.onMusicPlayerState(mMusicPlayerState,"播放失败，"+e.getMessage());
+                            } catch (RemoteException e1) {
+                                e1.printStackTrace();
+                            }
                         }
                     }
                     MusicPlayerManager.getInstance().observerUpdata(new MusicStatus(MusicStatus.PLAYER_STATUS_STOP,
@@ -1353,8 +1394,12 @@ public class MusicPlayerService extends Service implements MusicPlayerPresenter,
             }else{
                 MusicPlayerService.this.mMusicPlayerState = MusicConstants.MUSIC_PLAYER_ERROR;
                 if (null != mOnPlayerEventListeners) {
-                    for (MusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
-                        onPlayerEventListener.onMusicPlayerState(mMusicPlayerState,"未成功获取音频输出焦点");
+                    for (IMusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
+                        try {
+                            onPlayerEventListener.onMusicPlayerState(mMusicPlayerState,"未成功获取音频输出焦点");
+                        } catch (RemoteException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
                 MusicPlayerManager.getInstance().observerUpdata(new MusicStatus(MusicStatus.PLAYER_STATUS_STOP,
@@ -1365,9 +1410,13 @@ public class MusicPlayerService extends Service implements MusicPlayerPresenter,
             Logger.d(TAG,"startPlay-->Play Url Is Empty");
             MusicPlayerService.this.mMusicPlayerState = MusicConstants.MUSIC_PLAYER_ERROR;
             if (null != mOnPlayerEventListeners && mOnPlayerEventListeners.size() > 0) {
-                for (MusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
-                    onPlayerEventListener.onMusicPlayerState(mMusicPlayerState,null);
-                    onPlayerEventListener.onMusicPathInvalid(musicInfo,mCurrentPlayIndex);
+                for (IMusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
+                    try {
+                        onPlayerEventListener.onMusicPlayerState(mMusicPlayerState,null);
+                        onPlayerEventListener.onMusicPathInvalid(musicInfo,mCurrentPlayIndex);
+                    }catch (RemoteException e){
+                        e.printStackTrace();
+                    }
                 }
             }
             stopServiceForeground();
@@ -1445,8 +1494,12 @@ public class MusicPlayerService extends Service implements MusicPlayerPresenter,
      */
     private void postEchoCurrentPosition(int mCurrentPlayIndex) {
         if (null != mOnPlayerEventListeners &&null!=mAudios&&mAudios.size()>mCurrentPlayIndex) {
-            for (MusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
-                onPlayerEventListener.onEchoPlayCurrentIndex((BaseAudioInfo) mAudios.get(mCurrentPlayIndex),mCurrentPlayIndex);
+            for (IMusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
+                try {
+                    onPlayerEventListener.onEchoPlayCurrentIndex(mAudios.get(mCurrentPlayIndex),mCurrentPlayIndex);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -1457,8 +1510,12 @@ public class MusicPlayerService extends Service implements MusicPlayerPresenter,
      */
     private void postViewHandlerCurrentPosition(int currentPlayIndex) {
         if (null != mOnPlayerEventListeners &&null!=mAudios&&mAudios.size()>currentPlayIndex) {
-            for (MusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
-                onPlayerEventListener.onPlayMusiconInfo((BaseAudioInfo) mAudios.get(currentPlayIndex),currentPlayIndex);
+            for (IMusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
+                try {
+                    onPlayerEventListener.onPlayMusiconInfo( mAudios.get(currentPlayIndex),currentPlayIndex);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -1478,9 +1535,13 @@ public class MusicPlayerService extends Service implements MusicPlayerPresenter,
         mediaPlayer.start();
         MusicPlayerService.this.mMusicPlayerState =MusicConstants.MUSIC_PLAYER_PLAYING;
         if(null!= mOnPlayerEventListeners){
-            for (MusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
-                onPlayerEventListener.onPrepared(mediaPlayer.getDuration());
-                onPlayerEventListener.onMusicPlayerState(mMusicPlayerState,"播放中");
+            for (IMusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
+                try {
+                    onPlayerEventListener.onPrepared(mediaPlayer.getDuration());
+                    onPlayerEventListener.onMusicPlayerState(mMusicPlayerState,"播放中");
+                }catch (RemoteException e){
+                    e.printStackTrace();
+                }
             }
         }
         //通知主页，如果关心正在、最近播放的话
@@ -1500,8 +1561,12 @@ public class MusicPlayerService extends Service implements MusicPlayerPresenter,
         Logger.d(TAG, "onCompletion:LOOP:"+mLoop+",PLAYER_MODEL:"+mPlayModel);
         MusicPlayerService.this.mMusicPlayerState =MusicConstants.MUSIC_PLAYER_STOP;
         if(null!= mOnPlayerEventListeners){
-            for (MusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
-                onPlayerEventListener.onMusicPlayerState(mMusicPlayerState,"播放完成");
+            for (IMusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
+                try {
+                    onPlayerEventListener.onMusicPlayerState(mMusicPlayerState,"播放完成");
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
             }
         }
         startServiceForeground();
@@ -1535,8 +1600,12 @@ public class MusicPlayerService extends Service implements MusicPlayerPresenter,
         }
         MusicPlayerService.this.mMusicPlayerState =MusicConstants.MUSIC_PLAYER_PLAYING;
         if(null!= mOnPlayerEventListeners){
-            for (MusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
-                onPlayerEventListener.onMusicPlayerState(mMusicPlayerState,null);
+            for (IMusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
+                try {
+                    onPlayerEventListener.onMusicPlayerState(mMusicPlayerState,null);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -1551,8 +1620,12 @@ public class MusicPlayerService extends Service implements MusicPlayerPresenter,
         onReset();
         String content=getErrorMessage(event);
         if(null!= mOnPlayerEventListeners){
-            for (MusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
-                onPlayerEventListener.onMusicPlayerState(mMusicPlayerState,content);
+            for (IMusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
+                try {
+                    onPlayerEventListener.onMusicPlayerState(mMusicPlayerState,content);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
             }
         }
         //简单的更新播放状态
@@ -1618,8 +1691,12 @@ public class MusicPlayerService extends Service implements MusicPlayerPresenter,
             MusicPlayerService.this.mMusicPlayerState =state;
         }
         if(null!= mOnPlayerEventListeners){
-            for (MusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
-                onPlayerEventListener.onMusicPlayerState(mMusicPlayerState,null);
+            for (IMusicPlayerEventListener onPlayerEventListener : mOnPlayerEventListeners) {
+                try {
+                    onPlayerEventListener.onMusicPlayerState(mMusicPlayerState,null);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
             }
         }
         return false;
@@ -1829,4 +1906,227 @@ public class MusicPlayerService extends Service implements MusicPlayerPresenter,
             mAudioFocusManager=null;
         }
     }
+
+    //Service委托代理人AIDL
+    private IBinder mPlayerBinder=new IMusicPlayerService.Stub() {
+        @Override
+        public void startPlayMusic(List<BaseAudioInfo> audios, int index) throws RemoteException {
+            MusicPlayerService.this.startPlayMusic(audios,index);
+        }
+
+        @Override
+        public void startPlayMusic1(int index) throws RemoteException {
+            MusicPlayerService.this.startPlayMusic(index);
+        }
+
+        @Override
+        public void addPlayMusicToTop(BaseAudioInfo audioInfo) throws RemoteException {
+            MusicPlayerService.this.addPlayMusicToTop(audioInfo);
+        }
+
+        @Override
+        public void playOrPause() throws RemoteException {
+            MusicPlayerService.this.playOrPause();
+        }
+
+        @Override
+        public void pause() throws RemoteException {
+            MusicPlayerService.this.pause();
+        }
+
+        @Override
+        public void play() throws RemoteException {
+            MusicPlayerService.this.play();
+        }
+
+        @Override
+        public void setLoop(boolean loop) throws RemoteException {
+            MusicPlayerService.this.setLoop(loop);
+        }
+
+        @Override
+        public void continuePlay(String sourcePath) throws RemoteException {
+            MusicPlayerService.this.continuePlay(sourcePath);
+        }
+
+        @Override
+        public void continuePlay1(String sourcePath, int index) throws RemoteException {
+            MusicPlayerService.this.continuePlay(sourcePath,index);
+        }
+
+        @Override
+        public void onReset() throws RemoteException {
+            MusicPlayerService.this.onReset();
+        }
+
+        @Override
+        public void onStop() throws RemoteException {
+            MusicPlayerService.this.onStop();
+        }
+
+        @Override
+        public void updateMusicPlayerData(List<BaseAudioInfo> audios, int index) throws RemoteException {
+            MusicPlayerService.this.updateMusicPlayerData(audios,index);
+        }
+
+        @Override
+        public int setPlayerModel(int model) throws RemoteException {
+            return MusicPlayerService.this.setPlayerModel(model);
+        }
+
+        @Override
+        public int getPlayerModel() throws RemoteException {
+            return MusicPlayerService.this.getPlayerModel();
+        }
+
+        @Override
+        public int setPlayerAlarmModel(int model) throws RemoteException {
+            return MusicPlayerService.this.setPlayerAlarmModel(model);
+        }
+
+        @Override
+        public int getPlayerAlarmModel() throws RemoteException {
+            return MusicPlayerService.this.getPlayerAlarmModel();
+        }
+
+        @Override
+        public void seekTo(long currentTime) throws RemoteException {
+            MusicPlayerService.this.seekTo(currentTime);
+        }
+
+        @Override
+        public void playLastMusic() throws RemoteException {
+            MusicPlayerService.this.playLastMusic();
+        }
+
+        @Override
+        public void playNextMusic() throws RemoteException {
+            MusicPlayerService.this.playNextMusic();
+        }
+
+        @Override
+        public int playLastIndex() throws RemoteException {
+            return MusicPlayerService.this.playLastIndex();
+        }
+
+        @Override
+        public int playNextIndex() throws RemoteException {
+            return MusicPlayerService.this.playNextIndex();
+        }
+
+        @Override
+        public boolean isPlaying() throws RemoteException {
+            return MusicPlayerService.this.isPlaying();
+        }
+
+        @Override
+        public long getDurtion() throws RemoteException {
+            return MusicPlayerService.this.getDurtion();
+        }
+
+        @Override
+        public long getCurrentPlayerID() throws RemoteException {
+            return MusicPlayerService.this.getCurrentPlayerID();
+        }
+
+        @Override
+        public BaseAudioInfo getCurrentPlayerMusic() throws RemoteException {
+            return MusicPlayerService.this.getCurrentPlayerMusic();
+        }
+
+        @Override
+        public String getCurrentPlayerHashKey() throws RemoteException {
+            return MusicPlayerService.this.getCurrentPlayerHashKey();
+        }
+
+        @Override
+        public List<BaseAudioInfo> getCurrentPlayList() throws RemoteException {
+            return MusicPlayerService.this.getCurrentPlayList();
+        }
+
+        @Override
+        public void setPlayingChannel(int channel) throws RemoteException {
+            MusicPlayerService.this.setPlayingChannel(channel);
+        }
+
+        @Override
+        public int getPlayingChannel() throws RemoteException {
+            return MusicPlayerService.this.getPlayingChannel();
+        }
+
+        @Override
+        public int getPlayerState() throws RemoteException {
+            return MusicPlayerService.this.getPlayerState();
+        }
+
+        @Override
+        public void onCheckedPlayerConfig() throws RemoteException {
+            MusicPlayerService.this.onCheckedPlayerConfig();
+        }
+
+        @Override
+        public void onCheckedCurrentPlayTask() throws RemoteException {
+            MusicPlayerService.this.onCheckedCurrentPlayTask();
+        }
+
+        @Override
+        public void addOnPlayerEventListener(IMusicPlayerEventListener listener) throws RemoteException {
+            MusicPlayerService.this.addOnPlayerEventListener(listener);
+        }
+
+        @Override
+        public void removePlayerListener(IMusicPlayerEventListener listener) throws RemoteException {
+            MusicPlayerService.this.removePlayerListener(listener);
+        }
+
+        @Override
+        public void removeAllPlayerListener() throws RemoteException {
+            MusicPlayerService.this.removeAllPlayerListener();
+        }
+
+        @Override
+        public void setPlayInfoListener(IMusicPlayerInfoListener listener) throws RemoteException {
+            MusicPlayerService.this.setPlayInfoListener(listener);
+        }
+
+        @Override
+        public void removePlayInfoListener() throws RemoteException {
+            MusicPlayerService.this.removePlayInfoListener();
+        }
+
+        @Override
+        public void changedPlayerPlayModel() throws RemoteException {
+            MusicPlayerService.this.changedPlayerPlayModel();
+        }
+
+        @Override
+        public void createMiniJukeboxWindow() throws RemoteException {
+            MusicPlayerService.this.createMiniJukeboxWindow();
+        }
+
+        @Override
+        public void startServiceForeground() throws RemoteException {
+            MusicPlayerService.this.startServiceForeground();
+        }
+
+        @Override
+        public void startServiceForeground1(Notification notification) throws RemoteException {
+            MusicPlayerService.this.startServiceForeground(notification);
+        }
+
+        @Override
+        public void startServiceForeground2(Notification notification, int notificeid) throws RemoteException {
+            MusicPlayerService.this.startServiceForeground(notification,notificeid);
+        }
+
+        @Override
+        public void stopServiceForeground() throws RemoteException {
+            MusicPlayerService.this.stopServiceForeground();
+        }
+
+        @Override
+        public void stopServiceForeground1(int notificeid) throws RemoteException {
+            MusicPlayerService.this.stopServiceForeground(notificeid);
+        }
+    };
 }

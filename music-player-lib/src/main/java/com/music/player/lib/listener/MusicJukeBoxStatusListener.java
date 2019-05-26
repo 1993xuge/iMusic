@@ -10,7 +10,7 @@ import com.music.player.lib.bean.MusicLrcRow;
  * Music JukeBox Status Listener
  */
 
-public interface MusicJukeBoxStatusListener {
+public interface MusicJukeBoxStatusListener{
 
     /**
      * 手指横向滚动过程对象变化

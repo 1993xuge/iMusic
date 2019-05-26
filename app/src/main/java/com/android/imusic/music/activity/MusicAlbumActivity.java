@@ -4,6 +4,8 @@ import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.os.RemoteException;
 import android.support.annotation.Nullable;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
@@ -34,8 +36,8 @@ import com.bumptech.glide.request.target.SimpleTarget;
 import com.music.player.lib.bean.BaseAudioInfo;
 import com.music.player.lib.bean.MusicStatus;
 import com.music.player.lib.constants.MusicConstants;
+import com.music.player.lib.listener.IMusicPlayerEventListener;
 import com.music.player.lib.listener.MusicOnItemClickListener;
-import com.music.player.lib.listener.MusicPlayerEventListener;
 import com.music.player.lib.manager.MusicPlayerManager;
 import com.music.player.lib.manager.MusicSubjectObservable;
 import com.music.player.lib.model.MusicGlideCircleTransform;
@@ -56,7 +58,7 @@ import jp.wasabeef.glide.transformations.BlurTransformation;
  */
 
 public class MusicAlbumActivity extends BaseActivity<MusicListPersenter> implements
-        MusicOnItemClickListener, Observer, AppBarLayout.OnOffsetChangedListener, MusicPlayerEventListener, MusicListContract.View {
+        MusicOnItemClickListener, Observer, AppBarLayout.OnOffsetChangedListener, IMusicPlayerEventListener, MusicListContract.View {
 
     private MusicCommenListAdapter mAdapter;
     private String mTagID,mTitle;
@@ -439,6 +441,58 @@ public class MusicAlbumActivity extends BaseActivity<MusicListPersenter> impleme
     public void onTaskRuntime(long totalDurtion, long currentDurtion, long alarmResidueDurtion, int bufferProgress) {}
     @Override
     public void onPlayerConfig(int playModel, int alarmModel, boolean isToast) {
-        setPlayerModel(playModel);
+        Logger.d(TAG,"onPlayerConfig-->回调");
+    }
+
+    @Override
+    public IBinder asBinder() {
+
+        return new Stub() {
+            @Override
+            public void onMusicPlayerState(int playerState, String message) throws RemoteException {
+
+            }
+
+            @Override
+            public void onPrepared(long totalDurtion) throws RemoteException {
+
+            }
+
+            @Override
+            public void onBufferingUpdate(int percent) throws RemoteException {
+
+            }
+
+            @Override
+            public void onInfo(int event, int extra) throws RemoteException {
+
+            }
+
+            @Override
+            public void onPlayMusiconInfo(BaseAudioInfo musicInfo, int position) throws RemoteException {
+
+            }
+
+            @Override
+            public void onEchoPlayCurrentIndex(BaseAudioInfo musicInfo, int position) throws RemoteException {
+
+            }
+
+            @Override
+            public void onMusicPathInvalid(BaseAudioInfo musicInfo, int position) throws RemoteException {
+
+            }
+
+            @Override
+            public void onTaskRuntime(long totalDurtion, long currentDurtion, long alarmResidueDurtion, int bufferProgress) throws RemoteException {
+
+            }
+
+            @Override
+            public void onPlayerConfig(int playModel, int alarmModel, boolean isToast) throws RemoteException {
+                Logger.d(TAG,"onPlayerConfig-->AIDL");
+                setPlayerModel(playModel);
+            }
+        };
     }
 }

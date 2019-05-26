@@ -1,6 +1,7 @@
 package com.android.imusic.music.dialog;
 
 import android.content.Context;
+import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomSheetDialog;
 import android.support.v7.widget.LinearLayoutManager;
@@ -20,8 +21,8 @@ import com.android.imusic.music.bean.MusicDetails;
 import com.android.imusic.music.utils.MediaUtils;
 import com.music.player.lib.adapter.base.OnItemClickListener;
 import com.music.player.lib.bean.BaseAudioInfo;
+import com.music.player.lib.listener.IMusicPlayerEventListener;
 import com.music.player.lib.listener.MusicOnItemClickListener;
-import com.music.player.lib.listener.MusicPlayerEventListener;
 import com.music.player.lib.manager.MusicPlayerManager;
 import java.util.List;
 
@@ -31,13 +32,18 @@ import java.util.List;
  * Music Details
  */
 
-public class MusicMusicDetailsDialog extends BottomSheetDialog implements MusicPlayerEventListener {
+public class MusicMusicDetailsDialog extends BottomSheetDialog implements IMusicPlayerEventListener {
 
     private static final String TAG = "MusicPlayerListDialog";
     private MusicDetailsAdapter mAdapter;
     private ImageView mBtnPlayModel;
     //默认的访问场景
     private DialogScene mSceneMode=DialogScene.SCENE_LOCATION;
+
+    @Override
+    public IBinder asBinder() {
+        return null;
+    }
 
     public enum DialogScene{
         SCENE_LOCATION,

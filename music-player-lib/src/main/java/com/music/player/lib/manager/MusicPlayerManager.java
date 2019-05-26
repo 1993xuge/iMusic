@@ -7,14 +7,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
+import android.os.RemoteException;
 import com.music.player.lib.bean.BaseAudioInfo;
 import com.music.player.lib.constants.MusicConstants;
 import com.music.player.lib.iinterface.MusicPlayerPresenter;
-import com.music.player.lib.listener.MusicPlayerEventListener;
-import com.music.player.lib.listener.MusicPlayerInfoListener;
+import com.music.player.lib.listener.IMusicPlayerEventListener;
+import com.music.player.lib.listener.IMusicPlayerInfoListener;
 import com.music.player.lib.model.MusicPlayerConfig;
-import com.music.player.lib.service.MusicPlayerBinder;
+import com.music.player.lib.service.IMusicPlayerService;
 import com.music.player.lib.service.MusicPlayerService;
+import com.music.player.lib.util.Logger;
 import com.music.player.lib.util.MusicUtils;
 import java.util.List;
 import java.util.Observer;
@@ -29,15 +31,16 @@ import java.util.Observer;
 
 public final class MusicPlayerManager implements MusicPlayerPresenter {
 
+    private static final String TAG = "MusicPlayerManager";
     private static volatile MusicPlayerManager mInstance = null;
     private static MusicSubjectObservable cMMusicSubjectObservable;
     private static MusicPlayerServiceConnection mConnection;
-    private static MusicPlayerBinder mBinder;
+    private static IMusicPlayerService mBinder;
     //播放器配置
     private static MusicPlayerConfig mMusicPlayerConfig;
     private static String mActivityPlayerClassName, mActivityLockClassName;
     //临时存储的变量，防止在初始化时设置监听内部Service还未启动
-    private MusicPlayerInfoListener mTempInfoListener;
+    private IMusicPlayerInfoListener mTempInfoListener;
 
     public static MusicPlayerManager getInstance() {
         if(null==mInstance){
@@ -84,10 +87,10 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     public void unBindService(Context context) {
         if(null!=context&&context instanceof Activity){
-            if(null!=mConnection&&null!=mBinder&&mBinder.pingBinder()){
+            if(null!=mConnection&&null!=mBinder){
                 context.unbindService(mConnection);
             }
-            context.stopService(new Intent(context, MusicPlayerService.class));
+//            context.stopService(new Intent(context, MusicPlayerService.class));
         }else{
             new IllegalStateException("Must pass in Activity type Context!");
         }
@@ -278,9 +281,13 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      * @param index 指定要播放的位置 0-data.size()
      */
     @Override
-    public void startPlayMusic(List<?> audios, int index) {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            mBinder.startPlayMusic(audios,index);
+    public void startPlayMusic(List<BaseAudioInfo> audios, int index) {
+        if(null!=mBinder){
+            try {
+                mBinder.startPlayMusic(audios,index);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -290,8 +297,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public void startPlayMusic(int index) {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            mBinder.startPlayMusic(index);
+        if(null!=mBinder){
+            try {
+                mBinder.startPlayMusic1(index);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -301,8 +312,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public void addPlayMusicToTop(BaseAudioInfo audioInfo) {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            mBinder.addPlayMusicToTop(audioInfo);
+        if(null!=mBinder){
+            try {
+                mBinder.addPlayMusicToTop(audioInfo);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -311,8 +326,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public void playOrPause() {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            mBinder.playOrPause();
+        if(null!=mBinder){
+            try {
+                mBinder.playOrPause();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -321,8 +340,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public void pause() {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            mBinder.pause();
+        if(null!=mBinder){
+            try {
+                mBinder.pause();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -331,8 +354,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public void play() {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            mBinder.play();
+        if(null!=mBinder){
+            try {
+                mBinder.play();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -342,8 +369,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public void setLoop(boolean loop) {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            mBinder.setLoop(loop);
+        if(null!=mBinder){
+            try {
+                mBinder.setLoop(loop);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -353,8 +384,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public void continuePlay(String sourcePath) {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            mBinder.continuePlay(sourcePath);
+        if(null!=mBinder){
+            try {
+                mBinder.continuePlay(sourcePath);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -365,8 +400,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public void continuePlay(String sourcePath,int index) {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            mBinder.continuePlay(sourcePath,index);
+        if(null!=mBinder){
+            try {
+                mBinder.continuePlay1(sourcePath,index);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -375,8 +414,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public void onReset() {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            mBinder.onReset();
+        if(null!=mBinder){
+            try {
+                mBinder.onReset();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -385,8 +428,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public void onStop() {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            mBinder.onStop();
+        if(null!=mBinder){
+            try {
+                mBinder.onStop();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -396,9 +443,13 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      * @param index 位置
      */
     @Override
-    public void updateMusicPlayerData(List<?> audios, int index) {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            mBinder.updateMusicPlayerData(audios,index);
+    public void updateMusicPlayerData(List<BaseAudioInfo> audios, int index) {
+        if(null!=mBinder){
+            try {
+                mBinder.updateMusicPlayerData(audios,index);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -409,8 +460,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public int setPlayerModel(int model) {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            return mBinder.setPlayerModel(model);
+        if(null!=mBinder){
+            try {
+                return mBinder.setPlayerModel(model);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
         return MusicConstants.MUSIC_MODEL_LOOP;
     }
@@ -421,8 +476,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public int getPlayerModel() {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            return mBinder.getPlayerModel();
+        if(null!=mBinder){
+            try {
+                return mBinder.getPlayerModel();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
         return MusicConstants.MUSIC_MODEL_LOOP;
     }
@@ -434,8 +493,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public int setPlayerAlarmModel(int model) {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            return mBinder.setPlayerAlarmModel(model);
+        if(null!=mBinder){
+            try {
+                return mBinder.setPlayerAlarmModel(model);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
         return MusicConstants.MUSIC_ALARM_MODEL_0;
     }
@@ -446,8 +509,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public int getPlayerAlarmModel() {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            return mBinder.getPlayerAlarmModel();
+        if(null!=mBinder){
+            try {
+                return mBinder.getPlayerAlarmModel();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
         return MusicConstants.MUSIC_ALARM_MODEL_0;
     }
@@ -458,8 +525,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public void seekTo(long currentTime) {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            mBinder.onSeekTo(currentTime);
+        if(null!=mBinder){
+            try {
+                mBinder.seekTo(currentTime);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -468,8 +539,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public void playLastMusic() {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            mBinder.playLastMusic();
+        if(null!=mBinder){
+            try {
+                mBinder.playLastMusic();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -478,8 +553,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public void playNextMusic() {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            mBinder.playNextMusic();
+        if(null!=mBinder){
+            try {
+                mBinder.playNextMusic();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -489,8 +568,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public int playLastIndex() {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            return mBinder.playLastIndex();
+        if(null!=mBinder){
+            try {
+                return mBinder.playLastIndex();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
         return -1;
     }
@@ -501,8 +584,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public int playNextIndex() {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            return mBinder.playNextIndex();
+        if(null!=mBinder){
+            try {
+                return mBinder.playNextIndex();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
         return -1;
     }
@@ -513,8 +600,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public boolean isPlaying() {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            return mBinder.isPlaying();
+        if(null!=mBinder){
+            try {
+                return mBinder.isPlaying();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
         return false;
     }
@@ -525,8 +616,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public long getDurtion() {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            return mBinder.getDurtion();
+        if(null!=mBinder){
+            try {
+                return mBinder.getDurtion();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
         return 0;
     }
@@ -537,8 +632,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public long getCurrentPlayerID() {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            return mBinder.getCurrentPlayerID();
+        if(null!=mBinder){
+            try {
+                return mBinder.getCurrentPlayerID();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
         return 0;
     }
@@ -549,8 +648,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public BaseAudioInfo getCurrentPlayerMusic() {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            return mBinder.getCurrentPlayerMusic();
+        if(null!=mBinder){
+            try {
+                return mBinder.getCurrentPlayerMusic();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
         return null;
     }
@@ -561,8 +664,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public String getCurrentPlayerHashKey() {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            return mBinder.getCurrentPlayerHashKey();
+        if(null!=mBinder){
+            try {
+                return mBinder.getCurrentPlayerHashKey();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
         return "";
     }
@@ -572,9 +679,13 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      * @return 音频队列
      */
     @Override
-    public List<?> getCurrentPlayList() {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            return mBinder.getCurrentPlayList();
+    public List<BaseAudioInfo> getCurrentPlayList() {
+        if(null!=mBinder){
+            try {
+                return mBinder.getCurrentPlayList();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
         return null;
     }
@@ -585,8 +696,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public void setPlayingChannel(int channel) {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            mBinder.setPlayingChannel(channel);
+        if(null!=mBinder){
+            try {
+                mBinder.setPlayingChannel(channel);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -596,8 +711,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public int getPlayingChannel() {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            return mBinder.getPlayingChannel();
+        if(null!=mBinder){
+            try {
+                return mBinder.getPlayingChannel();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
         return MusicConstants.CHANNEL_NET;
     }
@@ -608,8 +727,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public int getPlayerState() {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            return mBinder.getPlayerState();
+        if(null!=mBinder){
+            try {
+                return mBinder.getPlayerState();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
         return 0;
     }
@@ -619,8 +742,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public void onCheckedPlayerConfig() {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            mBinder.onCheckedPlayerConfig();
+        if(null!=mBinder){
+            try {
+                mBinder.onCheckedPlayerConfig();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -631,8 +758,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public void onCheckedCurrentPlayTask() {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            mBinder.onCheckedCurrentPlayTask();
+        if(null!=mBinder){
+            try {
+                mBinder.onCheckedCurrentPlayTask();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -641,9 +772,13 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      * @param listener 实现对象
      */
     @Override
-    public void addOnPlayerEventListener(MusicPlayerEventListener listener) {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            mBinder.setOnPlayerEventListener(listener);
+    public void addOnPlayerEventListener(IMusicPlayerEventListener listener) {
+        if(null!=mBinder){
+            try {
+                mBinder.addOnPlayerEventListener(listener);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -652,9 +787,13 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      * @param listener 实现对象
      */
     @Override
-    public void removePlayerListener(MusicPlayerEventListener listener) {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            mBinder.removePlayerListener(listener);
+    public void removePlayerListener(IMusicPlayerEventListener listener) {
+        if(null!=mBinder){
+            try {
+                mBinder.removePlayerListener(listener);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -663,8 +802,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public void removeAllPlayerListener() {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            mBinder.removeAllPlayerListener();
+        if(null!=mBinder){
+            try {
+                mBinder.removeAllPlayerListener();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -673,9 +816,13 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      * @param listener 实现监听器的对象
      */
     @Override
-    public void setPlayInfoListener(MusicPlayerInfoListener listener) {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            mBinder.setPlayInfoListener(listener);
+    public void setPlayInfoListener(IMusicPlayerInfoListener listener) {
+        if(null!=mBinder){
+            try {
+                mBinder.setPlayInfoListener(listener);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }else{
             mTempInfoListener=listener;
         }
@@ -686,8 +833,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public void removePlayInfoListener() {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            mBinder.removePlayInfoListener();
+        if(null!=mBinder){
+            try {
+                mBinder.removePlayInfoListener();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -696,8 +847,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public void changedPlayerPlayModel() {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            mBinder.changedPlayerPlayModel();
+        if(null!=mBinder){
+            try {
+                mBinder.changedPlayerPlayModel();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -706,8 +861,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public void createMiniJukeboxWindow() {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            mBinder.createMiniJukeboxWindow();
+        if(null!=mBinder){
+            try {
+                mBinder.createMiniJukeboxWindow();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -716,8 +875,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public void startServiceForeground() {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            mBinder.startServiceForeground();
+        if(null!=mBinder){
+            try {
+                mBinder.startServiceForeground();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -727,8 +890,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public void startServiceForeground(Notification notification) {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            mBinder.startServiceForeground(notification);
+        if(null!=mBinder){
+            try {
+                mBinder.startServiceForeground1(notification);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
     }
     /**
@@ -738,8 +905,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public void startServiceForeground(Notification notification, int notificeid) {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            mBinder.startServiceForeground(notification,notificeid);
+        if(null!=mBinder){
+            try {
+                mBinder.startServiceForeground2(notification,notificeid);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -748,8 +919,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public void stopServiceForeground() {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            mBinder.stopServiceForeground();
+        if(null!=mBinder){
+            try {
+                mBinder.stopServiceForeground();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -759,8 +934,12 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
      */
     @Override
     public void stopServiceForeground(int notificeid) {
-        if(null!=mBinder&&mBinder.pingBinder()){
-            mBinder.stopServiceForeground(notificeid);
+        if(null!=mBinder){
+            try {
+                mBinder.stopServiceForeground1(notificeid);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -845,17 +1024,24 @@ public final class MusicPlayerManager implements MusicPlayerPresenter {
     private class MusicPlayerServiceConnection implements ServiceConnection {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
+            Logger.d(TAG,"onServiceConnected-->0");
             if (null != service) {
-                if(service instanceof MusicPlayerBinder){
-                    mBinder = (MusicPlayerBinder) service;
-                    if(null!=mTempInfoListener){
+                Logger.d(TAG,"onServiceConnected-->1:"+service.toString());
+                mBinder = IMusicPlayerService.Stub.asInterface(service);
+                if(null!=mTempInfoListener){
+                    Logger.d(TAG,"onServiceConnected-->3");
+                    try {
                         mBinder.setPlayInfoListener(mTempInfoListener);
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
                     }
                 }
             }
         }
         @Override
-        public void onServiceDisconnected(ComponentName name) {}
+        public void onServiceDisconnected(ComponentName name) {
+            Logger.d(TAG,"onServiceDisconnected-->");
+        }
     }
 
     /**

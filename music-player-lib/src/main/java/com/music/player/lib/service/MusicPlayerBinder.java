@@ -1,12 +1,12 @@
 package com.music.player.lib.service;
 
 import android.app.Notification;
-import android.os.Binder;
+import android.os.RemoteException;
 import com.music.player.lib.bean.BaseAudioInfo;
-import com.music.player.lib.constants.MusicConstants;
 import com.music.player.lib.iinterface.MusicPlayerPresenter;
-import com.music.player.lib.listener.MusicPlayerEventListener;
-import com.music.player.lib.listener.MusicPlayerInfoListener;
+import com.music.player.lib.listener.IMusicPlayerEventListener;
+import com.music.player.lib.listener.IMusicPlayerInfoListener;
+import com.music.player.lib.util.Logger;
 import java.util.List;
 
 /**
@@ -14,9 +14,13 @@ import java.util.List;
  * 2019/3/8
  * Music Service Binder
  * MusicPlayerService 的中间代理人
+ * 自1.0.9版本被AIDL替代
  */
 
-public class MusicPlayerBinder extends Binder{
+@Deprecated
+public class MusicPlayerBinder extends IMusicPlayerService.Stub{
+
+    private static final String TAG = "MusicPlayerBinder";
 
     private final MusicPlayerPresenter mPresenter;
 
@@ -24,262 +28,322 @@ public class MusicPlayerBinder extends Binder{
         this.mPresenter=presenter;
     }
 
-    public void startPlayMusic(List<?> musicList,int position){
+    @Override
+    public void startPlayMusic(List<BaseAudioInfo> audios, int index) throws RemoteException {
+        Logger.d(TAG,"startPlayMusic-->");
         if(null!=mPresenter){
-            mPresenter.startPlayMusic(musicList,position);
+            mPresenter.startPlayMusic(audios,index);
         }
     }
 
-    public void startPlayMusic(int position){
+    @Override
+    public void startPlayMusic1(int index) throws RemoteException {
         if(null!=mPresenter){
-            mPresenter.startPlayMusic(position);
+            mPresenter.startPlayMusic(index);
         }
     }
 
-    public void addPlayMusicToTop(BaseAudioInfo audioInfo){
+    @Override
+    public void addPlayMusicToTop(BaseAudioInfo audioInfo) throws RemoteException {
         if(null!=mPresenter){
             mPresenter.addPlayMusicToTop(audioInfo);
         }
     }
 
-    public void playOrPause(){
+    @Override
+    public void playOrPause() throws RemoteException {
         if(null!=mPresenter){
             mPresenter.playOrPause();
         }
     }
 
-    public void pause(){
+    @Override
+    public void pause() throws RemoteException {
         if(null!=mPresenter){
             mPresenter.pause();
         }
     }
 
-    public void play(){
+    @Override
+    public void play() throws RemoteException {
         if(null!=mPresenter){
             mPresenter.play();
         }
     }
 
-    public void setLoop(boolean loop) {
-        if (null!=mPresenter) {
+    @Override
+    public void setLoop(boolean loop) throws RemoteException {
+        if(null!=mPresenter){
             mPresenter.setLoop(loop);
         }
     }
 
-    public void continuePlay(String sourcePath) {
-        if (null!=mPresenter) {
+    @Override
+    public void continuePlay(String sourcePath) throws RemoteException {
+        if(null!=mPresenter){
             mPresenter.continuePlay(sourcePath);
         }
     }
 
-    public void continuePlay(String sourcePath,int position) {
-        if (null!=mPresenter) {
-            mPresenter.continuePlay(sourcePath,position);
+    @Override
+    public void continuePlay1(String sourcePath, int index) throws RemoteException {
+        if(null!=mPresenter){
+            mPresenter.continuePlay(sourcePath,index);
         }
     }
 
-    public void onReset(){
-        if(null!=mPresenter) mPresenter.onReset();
+    @Override
+    public void onReset() throws RemoteException {
+        if(null!=mPresenter){
+            mPresenter.onReset();
+        }
     }
 
-    public void onStop(){
-        if(null!=mPresenter) mPresenter.onStop();
+    @Override
+    public void onStop() throws RemoteException {
+        if(null!=mPresenter){
+            mPresenter.onStop();
+        }
     }
 
-    public void updateMusicPlayerData(List<?> audios, int index) {
+    @Override
+    public void updateMusicPlayerData(List<BaseAudioInfo> audios, int index) throws RemoteException {
         if(null!=mPresenter){
             mPresenter.updateMusicPlayerData(audios,index);
         }
     }
 
-    public int setPlayerModel(int model) {
-        if (null!=mPresenter) {
+    @Override
+    public int setPlayerModel(int model) throws RemoteException {
+        if(null!=mPresenter){
             return mPresenter.setPlayerModel(model);
         }
-        return MusicConstants.MUSIC_MODEL_LOOP;
+        return 0;
     }
 
-    public int getPlayerModel(){
-        if (null!=mPresenter) {
+    @Override
+    public int getPlayerModel() throws RemoteException {
+        if(null!=mPresenter){
             return mPresenter.getPlayerModel();
         }
-        return MusicConstants.MUSIC_MODEL_LOOP;
+        return 0;
     }
 
-    public int setPlayerAlarmModel(int model) {
-        if (null!=mPresenter) {
+    @Override
+    public int setPlayerAlarmModel(int model) throws RemoteException {
+        if(null!=mPresenter){
             return mPresenter.setPlayerAlarmModel(model);
         }
-        return MusicConstants.MUSIC_ALARM_MODEL_0;
+        return 0;
     }
 
-    public void onSeekTo(long currentTime){
-        if(null!=mPresenter) mPresenter.seekTo(currentTime);
+    @Override
+    public int getPlayerAlarmModel() throws RemoteException {
+        if(null!=mPresenter){
+            return mPresenter.getPlayerAlarmModel();
+        }
+        return 0;
     }
 
+    @Override
+    public void seekTo(long currentTime) throws RemoteException {
+        if(null!=mPresenter){
+            mPresenter.seekTo(currentTime);
+        }
+    }
 
-    public void playLastMusic() {
+    @Override
+    public void playLastMusic() throws RemoteException {
         if(null!=mPresenter){
             mPresenter.playLastMusic();
         }
     }
 
-    public void playNextMusic() {
+    @Override
+    public void playNextMusic() throws RemoteException {
         if(null!=mPresenter){
             mPresenter.playNextMusic();
         }
     }
 
-    public int playLastIndex() {
+    @Override
+    public int playLastIndex() throws RemoteException {
         if(null!=mPresenter){
             return mPresenter.playLastIndex();
         }
-        return -1;
+        return 0;
     }
 
-    public int playNextIndex() {
+    @Override
+    public int playNextIndex() throws RemoteException {
         if(null!=mPresenter){
             return mPresenter.playNextIndex();
         }
-        return -1;
+        return 0;
     }
 
-    public boolean isPlaying(){
+    @Override
+    public boolean isPlaying() throws RemoteException {
         if(null!=mPresenter){
             return mPresenter.isPlaying();
         }
         return false;
     }
 
-    public long getDurtion(){
-        if(null!=mPresenter) {
+    @Override
+    public long getDurtion() throws RemoteException {
+        if(null!=mPresenter){
             return mPresenter.getDurtion();
         }
         return 0;
     }
 
-    public long getCurrentPlayerID() {
-        if(null!=mPresenter) {
+    @Override
+    public long getCurrentPlayerID() throws RemoteException {
+        if(null!=mPresenter){
             return mPresenter.getCurrentPlayerID();
         }
         return 0;
     }
 
-    public BaseAudioInfo getCurrentPlayerMusic(){
-        if(null!=mPresenter) {
+    @Override
+    public BaseAudioInfo getCurrentPlayerMusic() throws RemoteException {
+        if(null!=mPresenter){
             return mPresenter.getCurrentPlayerMusic();
         }
         return null;
     }
 
-    public String getCurrentPlayerHashKey(){
-        if(null!=mPresenter) {
+    @Override
+    public String getCurrentPlayerHashKey() throws RemoteException {
+        if(null!=mPresenter){
             return mPresenter.getCurrentPlayerHashKey();
         }
-        return "";
+        return null;
     }
 
-    public List<?> getCurrentPlayList() {
-        if(null!=mPresenter) {
+    @Override
+    public List<BaseAudioInfo> getCurrentPlayList() throws RemoteException {
+        if(null!=mPresenter){
             return mPresenter.getCurrentPlayList();
         }
         return null;
     }
 
-    public void setPlayingChannel(int channel) {
-        if(null!=mPresenter){
-            mPresenter.setPlayingChannel(channel);
-        }
+    @Override
+    public void setPlayingChannel(int channel) throws RemoteException {
+
     }
 
-
-    public int getPlayingChannel() {
+    @Override
+    public int getPlayingChannel() throws RemoteException {
         if(null!=mPresenter){
             return mPresenter.getPlayingChannel();
         }
-        return MusicConstants.CHANNEL_NET;
+        return 0;
     }
 
-
-    public void onCheckedPlayerConfig(){
-        if(null!=mPresenter) mPresenter.onCheckedPlayerConfig();
-    }
-
-    public void onCheckedCurrentPlayTask(){
-        if(null!=mPresenter) mPresenter.onCheckedCurrentPlayTask();
-    }
-
-    public int getPlayerState() {
+    @Override
+    public int getPlayerState() throws RemoteException {
         if(null!=mPresenter){
             return mPresenter.getPlayerState();
         }
         return 0;
     }
 
-    public void changedPlayerPlayModel(){
+    @Override
+    public void onCheckedPlayerConfig() throws RemoteException {
+        if(null!=mPresenter){
+            mPresenter.onCheckedPlayerConfig();
+        }
+    }
+
+    @Override
+    public void onCheckedCurrentPlayTask() throws RemoteException {
+        if(null!=mPresenter){
+            mPresenter.onCheckedCurrentPlayTask();
+        }
+    }
+
+    @Override
+    public void addOnPlayerEventListener(IMusicPlayerEventListener listener) throws RemoteException {
+        if(null!=mPresenter){
+            mPresenter.addOnPlayerEventListener(listener);
+        }
+    }
+
+    @Override
+    public void removePlayerListener(IMusicPlayerEventListener listener) throws RemoteException {
+        if(null!=mPresenter){
+            mPresenter.removePlayerListener(listener);
+        }
+    }
+
+    @Override
+    public void removeAllPlayerListener() throws RemoteException {
+        if(null!=mPresenter){
+            mPresenter.removeAllPlayerListener();
+        }
+    }
+
+    @Override
+    public void setPlayInfoListener(IMusicPlayerInfoListener listener) throws RemoteException {
+        if(null!=mPresenter){
+            mPresenter.setPlayInfoListener(listener);
+        }
+    }
+
+    @Override
+    public void removePlayInfoListener() throws RemoteException {
+        if(null!=mPresenter){
+            mPresenter.removePlayInfoListener();
+        }
+    }
+
+    @Override
+    public void changedPlayerPlayModel() throws RemoteException {
         if(null!=mPresenter){
             mPresenter.changedPlayerPlayModel();
         }
     }
 
-    public void setOnPlayerEventListener(MusicPlayerEventListener listener) {
-        if(null!=mPresenter) mPresenter.addOnPlayerEventListener(listener);
-    }
-
-    public void removePlayerListener(MusicPlayerEventListener listener) {
-        if(null!=mPresenter) mPresenter.removePlayerListener(listener);
-    }
-
-    public void removeAllPlayerListener() {
-        if(null!=mPresenter) mPresenter.removeAllPlayerListener();
-    }
-
-    public void setPlayInfoListener(MusicPlayerInfoListener listener) {
-        if(null!=mPresenter) mPresenter.setPlayInfoListener(listener);
-    }
-
-    public void removePlayInfoListener() {
-        if(null!=mPresenter) mPresenter.removePlayInfoListener();
-    }
-
-    public int getPlayerAlarmModel() {
-        if(null!=mPresenter){
-            return mPresenter.getPlayerAlarmModel();
-        }
-        return MusicConstants.MUSIC_ALARM_MODEL_0;
-    }
-
-    public void createMiniJukeboxWindow(){
+    @Override
+    public void createMiniJukeboxWindow() throws RemoteException {
         if(null!=mPresenter){
             mPresenter.createMiniJukeboxWindow();
         }
     }
 
-    public void startServiceForeground(){
+    @Override
+    public void startServiceForeground() throws RemoteException {
         if(null!=mPresenter){
             mPresenter.startServiceForeground();
         }
     }
 
-    public void startServiceForeground(Notification notification){
+    @Override
+    public void startServiceForeground1(Notification notification) throws RemoteException {
         if(null!=mPresenter){
             mPresenter.startServiceForeground(notification);
         }
     }
 
-    public void startServiceForeground(Notification notification,int notificeid){
+    @Override
+    public void startServiceForeground2(Notification notification, int notificeid) throws RemoteException {
         if(null!=mPresenter){
             mPresenter.startServiceForeground(notification,notificeid);
         }
     }
 
-    public void stopServiceForeground(){
+    @Override
+    public void stopServiceForeground() throws RemoteException {
         if(null!=mPresenter){
             mPresenter.stopServiceForeground();
         }
     }
 
-    public void stopServiceForeground(int notificeid){
+    @Override
+    public void stopServiceForeground1(int notificeid) throws RemoteException {
         if(null!=mPresenter){
             mPresenter.stopServiceForeground(notificeid);
         }

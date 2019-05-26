@@ -1,6 +1,7 @@
 package com.music.player.lib.bean;
 
-import java.io.Serializable;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 /**
  * hty_Yuye@Outlook.com
@@ -9,7 +10,7 @@ import java.io.Serializable;
  * 带 * 标识的成员为必须赋值类型成员
  */
 
-public class BaseAudioInfo implements Serializable {
+public class BaseAudioInfo implements Parcelable {
     /**
      * 必选字段
      */
@@ -56,6 +57,37 @@ public class BaseAudioInfo implements Serializable {
     public BaseAudioInfo(){
 
     }
+
+    protected BaseAudioInfo(Parcel in) {
+        audioId = in.readLong();
+        audioDurtion = in.readLong();
+        audioName = in.readString();
+        audioCover = in.readString();
+        audioPath = in.readString();
+        nickname = in.readString();
+        userid = in.readString();
+        avatar = in.readString();
+        audioSize = in.readLong();
+        audioAlbumName = in.readString();
+        audioType = in.readString();
+        audioDescribe = in.readString();
+        audioHashKey = in.readString();
+        addtime = in.readLong();
+        isSelected = in.readByte() != 0;
+        lastPlayTime = in.readLong();
+    }
+
+    public static final Creator<BaseAudioInfo> CREATOR = new Creator<BaseAudioInfo>() {
+        @Override
+        public BaseAudioInfo createFromParcel(Parcel in) {
+            return new BaseAudioInfo(in);
+        }
+
+        @Override
+        public BaseAudioInfo[] newArray(int size) {
+            return new BaseAudioInfo[size];
+        }
+    };
 
     public long getAudioId() {
         return audioId;
@@ -205,5 +237,30 @@ public class BaseAudioInfo implements Serializable {
                 ", lastPlayTime=" + lastPlayTime +
                 ", addtime=" + addtime +
                 '}';
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeLong(audioId);
+        dest.writeLong(audioDurtion);
+        dest.writeString(audioName);
+        dest.writeString(audioCover);
+        dest.writeString(audioPath);
+        dest.writeString(nickname);
+        dest.writeString(userid);
+        dest.writeString(avatar);
+        dest.writeLong(audioSize);
+        dest.writeString(audioAlbumName);
+        dest.writeString(audioType);
+        dest.writeString(audioDescribe);
+        dest.writeString(audioHashKey);
+        dest.writeLong(addtime);
+        dest.writeByte((byte) (isSelected ? 1 : 0));
+        dest.writeLong(lastPlayTime);
     }
 }

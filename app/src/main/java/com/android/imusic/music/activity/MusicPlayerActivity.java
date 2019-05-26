@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Looper;
 import android.provider.Settings;
 import android.support.annotation.Nullable;
@@ -24,7 +25,6 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.android.imusic.R;
-import com.android.imusic.music.bean.AudioInfo;
 import com.android.imusic.music.manager.SqlLiteCacheManager;
 import com.android.imusic.music.model.MusicLrcRowParserEngin;
 import com.android.imusic.music.utils.MediaUtils;
@@ -32,10 +32,10 @@ import com.music.player.lib.bean.BaseAudioInfo;
 import com.music.player.lib.bean.MusicLrcRow;
 import com.music.player.lib.bean.MusicStatus;
 import com.music.player.lib.constants.MusicConstants;
+import com.music.player.lib.listener.IMusicPlayerEventListener;
 import com.music.player.lib.listener.MusicAnimatorListener;
 import com.music.player.lib.listener.MusicJukeBoxStatusListener;
 import com.music.player.lib.listener.MusicOnItemClickListener;
-import com.music.player.lib.listener.MusicPlayerEventListener;
 import com.music.player.lib.manager.MusicPlayerManager;
 import com.music.player.lib.manager.MusicWindowManager;
 import com.music.player.lib.util.Logger;
@@ -65,7 +65,7 @@ import java.util.List;
  */
 
 public class MusicPlayerActivity extends AppCompatActivity implements
-        MusicJukeBoxStatusListener, MusicPlayerEventListener {
+        MusicJukeBoxStatusListener, IMusicPlayerEventListener {
 
     private static final String TAG = "MusicPlayerActivity";
     private MusicJukeBoxView mMusicJukeBoxView;
@@ -137,8 +137,8 @@ public class MusicPlayerActivity extends AppCompatActivity implements
         MusicWindowManager.getInstance().onInvisible();
         MusicPlayerManager.getInstance().onCheckedPlayerConfig();//检查播放器配置
         if(null!=intent.getSerializableExtra(MusicConstants.KEY_MUSIC_LIST)){
-            List<AudioInfo> audioInfos = (List<AudioInfo>) intent.getSerializableExtra(MusicConstants.KEY_MUSIC_LIST);
-            final List<AudioInfo> thisMusicLists=new ArrayList<>();
+            List<BaseAudioInfo> audioInfos = (List<BaseAudioInfo>) intent.getSerializableExtra(MusicConstants.KEY_MUSIC_LIST);
+            final List<BaseAudioInfo> thisMusicLists=new ArrayList<>();
             thisMusicLists.addAll(audioInfos);
             final int index=MusicUtils.getInstance().getCurrentPlayIndex(thisMusicLists,musicID);
             if(null!=currentPlayerMusic&&currentPlayerMusic.getAudioId()==musicID&&
@@ -179,7 +179,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements
      */
     private void onStatusResume(long musicID) {
         Logger.d(TAG,"onStatusResume-->musicID:"+musicID);
-        List<BaseAudioInfo> currentPlayList = (List<BaseAudioInfo>) MusicPlayerManager.getInstance().getCurrentPlayList();
+        List<BaseAudioInfo> currentPlayList = MusicPlayerManager.getInstance().getCurrentPlayList();
         int currentPlayIndex = MusicUtils.getInstance().getCurrentPlayIndex(currentPlayList, musicID);
         mMusicJukeBoxView.setNewData(currentPlayList,currentPlayIndex);
         isVisibility=true;
@@ -886,5 +886,10 @@ public class MusicPlayerActivity extends AppCompatActivity implements
             mRootLayout=null;
         }
         isTouchSeekBar=false;
+    }
+
+    @Override
+    public IBinder asBinder() {
+        return null;
     }
 }

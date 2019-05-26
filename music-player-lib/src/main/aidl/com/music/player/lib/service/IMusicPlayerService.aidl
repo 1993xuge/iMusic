@@ -1,40 +1,31 @@
-package com.music.player.lib.iinterface;
+// MusicPlayerService.aidl
+package com.music.player.lib.service;
 
-import android.app.Notification;
-
+// Declare any non-default types here with import statements
 import com.music.player.lib.bean.BaseAudioInfo;
-import com.music.player.lib.listener.IMusicPlayerEventListener;
 import com.music.player.lib.listener.IMusicPlayerInfoListener;
-import com.music.player.lib.listener.MusicPlayerEventListener;
-import com.music.player.lib.listener.MusicPlayerInfoListener;
+import com.music.player.lib.listener.IMusicPlayerEventListener;
 
-import java.util.List;
+interface IMusicPlayerService {
 
-/**
- * hty_Yuye@Outlook.com
- * 2019/3/5
- * MusicPlayer Listener
- */
-
-public interface MusicPlayerPresenter {
     /**
      * 开始播放任务
      * @param audios 待播放的数据集，对象需要继承BaseaudioInfo
      * @param index 指定要播放的位置 0-data.size()
      */
-    void startPlayMusic(List<BaseAudioInfo> audios,int index);
+    void startPlayMusic(in List<BaseAudioInfo> audios,in int index);
 
     /**
      * 开始播放指定位置音频文件，如果内部数据集存在的话，此方法需在调用updateMusicPlayerData之后调用生效
      * @param index 指定的位置 0-data.size()
      */
-    void startPlayMusic(int index);
+    void startPlayMusic1(in int index);
 
     /**
      * 开始播放，并将此播放对象添加至正在播放的队列顶部
      * @param audioInfo 音频对象
      */
-    void addPlayMusicToTop(BaseAudioInfo audioInfo);
+    void addPlayMusicToTop(in BaseAudioInfo audioInfo);
 
     /**
      * 开始、暂停
@@ -55,20 +46,20 @@ public interface MusicPlayerPresenter {
      * 设置循环模式
      * @param loop 为true循环播放
      */
-    void setLoop(boolean loop);
+    void setLoop(in boolean loop);
 
     /**
      * 继续刚才播放的位置，此方法设计是在特殊场合调用，如音频文件购买付费了，尝试重新播放
      * @param sourcePath 音频文件的绝对地址，支持本地、网络、两种协议
      */
-    void continuePlay(String sourcePath);
+    void continuePlay(in String sourcePath);
 
     /**
      * 继续刚才播放的位置，此方法设计是在特殊场合调用，如音频文件购买付费了，尝试重新播放
      * @param sourcePath 音频文件的绝对地址，支持本地、网络、两种协议
      * @param index 期望重试播放的具体位置
      */
-    void continuePlay(String sourcePath,int index);
+    void continuePlay1(in String sourcePath,in int index);
 
     /**
      * 播放器内部释放
@@ -85,14 +76,14 @@ public interface MusicPlayerPresenter {
      * @param audios 待播放列表
      * @param index 位置
      */
-    void updateMusicPlayerData(List<BaseAudioInfo> audios, int index);
+    void updateMusicPlayerData(in List<BaseAudioInfo> audios, in int index);
 
     /**
      * 设置播放模式
      * @param model 播放模式，参考MusicConstants定义
      * @return 成功设置的播放模式
      */
-    int setPlayerModel(int model);
+    int setPlayerModel(in int model);
 
     /**
      * 返回播放器内部播放模式
@@ -105,7 +96,7 @@ public interface MusicPlayerPresenter {
      * @param model 定时关闭模式，参考MusicConstants常量定义
      * @return 成功设置的定时关闭模式
      */
-    int setPlayerAlarmModel(int model);
+    int setPlayerAlarmModel(in int model);
 
     /**
      * 返回播放器定时关闭模式
@@ -117,7 +108,7 @@ public interface MusicPlayerPresenter {
      * 跳转至某处播放
      * @param currentTime 时间位置，单位毫秒
      */
-    void seekTo(long currentTime);
+    void seekTo(in long currentTime);
 
     /**
      * 播放上一首，内部维持上一首逻辑
@@ -181,7 +172,7 @@ public interface MusicPlayerPresenter {
      * 更改播放器内部正在处理的播放数据来源CHANNEL
      * @param channel 数据来源CHANNEL,详见MusicConstants定义
      */
-    void setPlayingChannel(int channel);
+    void setPlayingChannel(in int channel);
 
     /**
      * 返回放器内部正在处理的播放数据来源CHANNEL
@@ -209,13 +200,13 @@ public interface MusicPlayerPresenter {
      * 添加一个播放状态监听器到监听器池子
      * @param listener 实现监听器的对象
      */
-    void addOnPlayerEventListener(IMusicPlayerEventListener listener);
+    void addOnPlayerEventListener(in IMusicPlayerEventListener listener);
 
     /**
      * 从监听器池子中移除一个监听器
      * @param listener 实现监听器的对象
      */
-    void removePlayerListener(IMusicPlayerEventListener listener);
+    void removePlayerListener(in IMusicPlayerEventListener listener);
 
     /**
      * 清空监听器池子所有的监听器对象
@@ -226,7 +217,7 @@ public interface MusicPlayerPresenter {
      * 设置播放对象监听
      * @param listener 实现监听器的对象
      */
-    void setPlayInfoListener(IMusicPlayerInfoListener listener);
+    void setPlayInfoListener(in IMusicPlayerInfoListener listener);
 
     /**
      * 移除监听播放对象事件
@@ -252,14 +243,14 @@ public interface MusicPlayerPresenter {
      * 打开常驻进程
      * @param notification 通知对象
      */
-    void startServiceForeground(Notification notification);
+    void startServiceForeground1(in Notification notification);
 
     /**
      * 打开常驻进程
      * @param notification 通知对象
      * @param notificeid 通知ID
      */
-    void startServiceForeground(Notification notification,int notificeid);
+    void startServiceForeground2(in Notification notification,in int notificeid);
 
     /**
      * 结束常驻进程并清除默认通知
@@ -270,5 +261,5 @@ public interface MusicPlayerPresenter {
      * 结束常驻进程并指定通知
      * @param notificeid 指定通知ID
      */
-    void stopServiceForeground(int notificeid);
+    void stopServiceForeground1(in int notificeid);
 }

@@ -18,6 +18,8 @@
         <!--MusicService-->
         <service
             android:name=".service.MusicPlayerService"
-            android:exported="true" />
+            android:exported="true"
+            android:enabled="true"
+            android:process=":imusic_player"/>
     </application>
 </manifest>

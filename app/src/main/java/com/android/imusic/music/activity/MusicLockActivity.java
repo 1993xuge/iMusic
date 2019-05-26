@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
@@ -23,7 +24,7 @@ import com.android.imusic.music.utils.MediaUtils;
 import com.music.player.lib.bean.BaseAudioInfo;
 import com.music.player.lib.bean.MusicStatus;
 import com.music.player.lib.constants.MusicConstants;
-import com.music.player.lib.listener.MusicPlayerEventListener;
+import com.music.player.lib.listener.IMusicPlayerEventListener;
 import com.music.player.lib.manager.MusicPlayerManager;
 import com.music.player.lib.manager.MusicWindowManager;
 import com.music.player.lib.util.Logger;
@@ -42,7 +43,7 @@ import java.util.Locale;
  * iMusic锁频播放、控制示例Activity
  */
 
-public class MusicLockActivity extends AppCompatActivity implements MusicPlayerEventListener {
+public class MusicLockActivity extends AppCompatActivity implements IMusicPlayerEventListener {
 
     private static final String TAG = "MusicLockActivity";
     private TextView mMusicTime,mMusicDate,mMusicTitle,mMusicAnchor;
@@ -403,5 +404,10 @@ public class MusicLockActivity extends AppCompatActivity implements MusicPlayerE
         if(null!=mMusicModel){
             mMusicModel.setImageResource(getResToPlayModel(playModel,isToast));
         }
+    }
+
+    @Override
+    public IBinder asBinder() {
+        return null;
     }
 }

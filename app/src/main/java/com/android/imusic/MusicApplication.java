@@ -3,6 +3,8 @@ package com.android.imusic;
 import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
+import android.os.IBinder;
+import android.os.RemoteException;
 import android.view.View;
 import com.android.imusic.music.activity.MusicPlayerActivity;
 import com.android.imusic.music.manager.AppBackgroundManager;
@@ -11,10 +13,11 @@ import com.android.imusic.music.manager.SqlLiteCacheManager;
 import com.android.imusic.net.OkHttpUtils;
 import com.music.player.lib.bean.BaseAudioInfo;
 import com.music.player.lib.constants.MusicConstants;
-import com.music.player.lib.listener.MusicPlayerInfoListener;
+import com.music.player.lib.listener.IMusicPlayerInfoListener;
 import com.music.player.lib.listener.MusicWindowClickListener;
 import com.music.player.lib.manager.MusicPlayerManager;
 import com.music.player.lib.manager.MusicWindowManager;
+import com.music.player.lib.util.Logger;
 import com.tencent.bugly.crashreport.CrashReport;
 
 /**
@@ -24,6 +27,7 @@ import com.tencent.bugly.crashreport.CrashReport;
 
 public class MusicApplication extends Application {
 
+    private static final String TAG = "MusicApplication";
     private static Context sContext;
 
     @Override
@@ -34,7 +38,19 @@ public class MusicApplication extends Application {
         //全局初始化
         MusicPlayerManager.getInstance()
                 .init(getApplicationContext())
-                .setPlayInfoListener(new MusicPlayerInfoListener() {
+                .setPlayInfoListener(new IMusicPlayerInfoListener() {
+                    @Override
+                    public IBinder asBinder() {
+                        return new Stub() {
+                            @Override
+                            public void onPlayMusiconInfo(BaseAudioInfo musicInfo, int position) throws RemoteException {
+                                Logger.d(TAG,"onPlayMusiconInfo-->AIDL:");
+                                //使用SQL存储本地播放记录
+                                SqlLiteCacheManager.getInstance().insertHistroyAudio(musicInfo);
+                            }
+                        };
+                    }
+
                     /**
                      * 播放器对象发生了变化
                      * @param musicInfo 播放器内部正在处理的音频对象
